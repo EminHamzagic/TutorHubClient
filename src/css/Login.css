@@ -42,3 +42,12 @@
 	outline: 0;
 	padding-left: 5px;
 }
+
+.radio-group {
+	display: flex;
+	align-items: center;
+}
+
+.radio-group label {
+	margin-right: 15px;
+}

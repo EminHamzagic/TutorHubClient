@@ -1,10 +1,13 @@
-import { useContext, useState } from "react";
+import { useContext, useEffect, useState } from "react";
 import "../../css/Login.css";
 import axios from "axios";
 import { UserContext } from "../../Contexts/UserContext";
+import { useNavigate } from "react-router-dom";
+import Cookies from "js-cookie";
 
 export default function Login() {
-	const { dispatchUserState, userState } = useContext(UserContext);
+	const { dispatchUserState, getToken } = useContext(UserContext);
+	const navigate = useNavigate();
 	const [email, setEmail] = useState("");
 	const [password, setPassword] = useState("");
 
@@ -26,10 +29,16 @@ export default function Login() {
 				.post("http://localhost:5206/api/Auth/Login", loginInfo)
 				.then((res) => {
 					dispatchUserState({ type: "setToken", value: res.data.token });
+					Cookies.set("authToken", res.data.token, { expires: 1 });
+					navigate("/");
 				})
 				.catch((err) => console.log(err));
 		}
 	};
+
+	useEffect(() => {
+		if (getToken()) navigate("/");
+	}, []);
 
 	return (
 		<div className="container">
@@ -41,7 +50,7 @@ export default function Login() {
 				</div>
 				<div className="inputField">
 					<label>Password:</label>
-					<input onChange={handleChangePassword} type="text" />
+					<input onChange={handleChangePassword} type="password" />
 				</div>
 				<button onClick={handleLogin} className="loginBtn">
 					Prijavi se
