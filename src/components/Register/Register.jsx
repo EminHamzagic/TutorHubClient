@@ -1,5 +1,7 @@
+import axios from "axios";
 import "../../css/Login.css";
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 
 export default function Register() {
 	const [username, setUsername] = useState("");
@@ -9,6 +11,10 @@ export default function Register() {
 	const [prezime, setPrezime] = useState("");
 	const [brTel, setBrTel] = useState("");
 	const [role, setRole] = useState("");
+	const [bio, setBio] = useState("aaaaaaaaaa");
+	const [grad, setGrad] = useState("a");
+	const [file, setFile] = useState(null);
+	const navigate = useNavigate();
 
 	const handleChangeUsername = (e) => {
 		setUsername(e.target.value);
@@ -38,22 +44,67 @@ export default function Register() {
 		setRole(e.target.value);
 	};
 
-	const handleLogin = () => {
-		const data = {
-			username: username,
-			email: email,
-			password: password,
-			roles: [role],
-			ime: ime,
-			prezime: prezime,
-			phone: brTel,
-		};
-		console.log(data);
+	const handleChangeBio = (e) => {
+		setBio(e.target.value);
+	};
+
+	const handleChangeGrad = (e) => {
+		setGrad(e.target.value);
+	};
+
+	const handleFileChange = (event) => {
+		setFile(event.target.files[0]);
+	};
+
+	const handleRegister = () => {
+		if (username !== "" && email !== "" && password !== "" && ime !== "" && prezime !== "" && brTel !== "" && role !== "") {
+			const data = {
+				username: username,
+				email: email,
+				password: password,
+				roles: [role],
+				ime: ime,
+				prezime: prezime,
+				phone: brTel,
+				bio: bio,
+				grad: grad,
+			};
+			console.log(data);
+
+			if (role === "Professor") {
+				if (bio !== "" && grad !== "" && file !== null) {
+					axios
+						.post("http://localhost:5206/api/Auth/Register", data)
+						.then((res) => {
+							const formData = new FormData();
+							formData.append("image", file);
+							formData.append("professor_Id", res.data);
+							axios
+								.post("http://localhost:5206/api/Profesor/setPfp", formData, {
+									headers: {
+										"Content-Type": "multipart/form-data",
+									},
+								})
+								.then((response) => console.log(response))
+								.catch((err) => console.log(err));
+						})
+						.catch((err) => console.log(err));
+				}
+			} else {
+				axios
+					.post("http://localhost:5206/api/Auth/Register", data)
+					.then((res) => {
+						console.log(res.data);
+						navigate("/login");
+					})
+					.catch((err) => console.log(err));
+			}
+		}
 	};
 
 	return (
 		<div className="container">
-			<div className="loginForm">
+			<div className="registerForm">
 				<h1>Registracija</h1>
 				<div className="inputField">
 					<label>Username:</label>
@@ -90,7 +141,25 @@ export default function Register() {
 						Profesor
 					</label>
 				</div>
-				<button onClick={handleLogin} className="loginBtn">
+				{role === "Professor" ? (
+					<div>
+						<div className="inputField">
+							<label>Biografija:</label>
+							<textarea onChange={handleChangeBio}></textarea>
+						</div>
+						<div className="inputField">
+							<label>Grad:</label>
+							<input onChange={handleChangeGrad} type="text" />
+						</div>
+						<div className="inputField">
+							<label>Biografija:</label>
+							<input type="file" accept="image/*" onChange={handleFileChange} />
+						</div>
+					</div>
+				) : (
+					<></>
+				)}
+				<button onClick={handleRegister} className="loginBtn">
 					Registruj se
 				</button>
 			</div>
